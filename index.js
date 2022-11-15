@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 require('dotenv/config');
 const orders = require('./routes/api/orders')
+const fastReports = require('./routes/api/fastReports')
 const cchtts = require('./routes/api/cchtts')
 const cgsats = require('./routes/api/cgsats')
 const bbdgkts = require('./routes/api/bbdgkts')
@@ -40,6 +41,7 @@ mongoose.connect(db, { useNewUrlParser: true, useUnifiedTopology: true, useCreat
 
 //use route
 app.use('/api/orders', orders);
+app.use('/api/fastReports', fastReports);
 app.use('/api/cchtts', cchtts);
 app.use('/api/cgsats', cgsats);
 app.use('/api/bbdgkts', bbdgkts);
