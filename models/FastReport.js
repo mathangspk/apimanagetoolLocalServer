@@ -25,6 +25,18 @@ const FastReportSchema = new Schema({
     content: {
         type: String,
     },
+    error: {
+        type: String,
+    },
+    result: {
+        type: String,
+    },
+    employ: {
+        type: String,
+    },
+    time: {
+        type: String,
+    },
     note: {
         type: String,
     },
