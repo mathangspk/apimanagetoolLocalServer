@@ -8,21 +8,9 @@ const multer = require('multer');
 const GridFsStorage = require('multer-gridfs-storage');
 const Gird = require('gridfs-stream');
 const path = require('path');
-var GoogleDriveStorage = require('multer-google-drive')
-var { google } = require('googleapis')
-const CLIENT_ID = "1053431940611-he0t7ad89i0edv52qdhj549rfqao92tn.apps.googleusercontent.com"
-const CLIENT_SECRET = "jBMWRinXEpdJZfDZmHG73FLs"
-const REDIRECT_URI = "https://developers.google.com/oauthplayground"
 
-const REFRESH_TOKEN = "1//04zJG01M7dZrKCgYIARAAGAQSNwF-L9Ir5FumS0D58f4TOgJMle1cshuTW6ErdnpMZScoRn4S1nxlb6U-s7WEmIBL03Gzt_oS_Uw"
 
-const oauth2Client = new google.auth.OAuth2(
-  CLIENT_ID,
-  CLIENT_SECRET,
-  REDIRECT_URI
-);
 
-oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN })
 const conn = mongoose.createConnection(db, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -35,21 +23,28 @@ conn.once('open', () => {
   gfs.collection('uploads');
 })
 
-const drive = google.drive({
-  version: 'v3',
-  auth: oauth2Client
-})
 //create storage engine
-
+var storage = new GridFsStorage({
+  url: db,
+  options: { useUnifiedTopology: true },
+  file: (req, file) => {
+    return new Promise((resolve, reject) => {
+      crypto.randomBytes(16, (err, buf) => {
+        if (err) {
+          return reject(err);
+        }
+        const filename = buf.toString('hex') + path.extname(file.originalname);
+        const fileInfo = {
+          filename: filename,
+          bucketName: 'uploads',
+        };
+        resolve(fileInfo);
+      });
+    });
+  }
+});
 const upload = multer({
-  storage: GoogleDriveStorage({
-    drive: drive,
-    parents: '1DhaSC-IrpGvW-tmU0l2_H2eb80XyOCMh',
-    fileName: function (req, file, cb) {
-      let filename = `test-${file.originalname}`;
-      cb(null, filename);
-    }
-  }),
+  storage,
   limits: {
     files: 5, // allow up to 5 files per request,
     fileSize: 10 * 1024 * 1024 // 5 MB (max file size)
