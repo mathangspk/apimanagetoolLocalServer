@@ -72,19 +72,25 @@ console.log('quet chuong trinh')
 //   }
 // });
 const upload = multer();
-const uploadFile = async (fileObject, folderId) => {
+const uploadFile = async (fileObject, folderId, name) => {
   const bufferStream = new stream.PassThrough();
   bufferStream.end(fileObject.buffer);
+  console.log('uploadFile', folderId)
+  var fileMetadata = {
+    'name': name,
+    parents: [folderId]
+  };
   const { data } = await google.drive({ version: "v3", auth: oauth2Client }).files.create({
+    resource: fileMetadata,
     media: {
       mimeType: fileObject.mimeType,
       body: bufferStream,
     },
-    requestBody: {
-      name: fileObject.originalname,
-      //parents: ["1DhaSC-IrpGvW-tmU0l2_H2eb80XyOCMh"],
-      parents: folderId
-    },
+    // requestBody: {
+    //   name: fileObject.originalname,
+    //   parents: ["1DhaSC-IrpGvW-tmU0l2_H2eb80XyOCMh"],
+    //   //parents: folderId
+    // },
     fields: "id,name",
   });
   console.log("folder id, ", folderId);
@@ -179,7 +185,7 @@ async function createFolderInFolder(folderId, name, UploadFile) {
 
 
 async function checkExitsFolder(files, nameFolder) {
-  let parentFolder = '1DhaSC-IrpGvW-tmU0l2_H2eb80XyOCMh';
+  let parentFolder = '1DhaSC-IrpGvW-tmU0l2_H2eb80XyOCMh'; // Name: PicInMana
   fs.readFile('data.json', 'utf8', (err, data) => {
     if (err) {
       console.log(err)
@@ -202,11 +208,12 @@ async function checkExitsFolder(files, nameFolder) {
         console.log('Exist folder Today in JSON data')
         folderIdUpload = existName;
         console.log(existName)
+        console.log(files[0].originalname)
+        //uploadFile(files[0], existName, 'fff');
         for (let f = 0; f < files.length; f += 1) {
-          uploadFile(files[f], existName);
+          uploadFile(files[f], existName, files[f].originalname);
         }
       }
-
     } else {
       console.log("Don't have any data in data.json file")
       //tao folder moi && upload file
@@ -216,9 +223,9 @@ async function checkExitsFolder(files, nameFolder) {
   })
 }
 
-async function createFileInFolder(id, name, mimeType, path) {
+async function createFileInFolder(folderId, name, mimeType, path) {
   try {
-    var folderId = id;
+    var folderId = folderId;
     var fileMetadata = {
       'name': name,
       parents: [folderId]
