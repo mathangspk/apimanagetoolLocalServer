@@ -147,7 +147,7 @@ async function uploadMultiFileInFolder(files, folderId) {
 }
 
 
-async function createFolderInFolder(folderId, name, UploadFile) {
+async function createFolderInFolder(files, folderId, name, UploadFile) {
   try {
     var fileMetadata = {
       'name': name,
@@ -172,7 +172,9 @@ async function createFolderInFolder(folderId, name, UploadFile) {
           console.log('Save data to data.json complete!')
         })
         if (UploadFile) {
-          //uploadMultiFileInFolder(file.data.id)
+          for (let f = 0; f < files.length; f += 1) {
+            uploadFile(files[f], file.data.id, files[f].originalname);
+          }
         }
 
       }
@@ -203,7 +205,7 @@ async function checkExitsFolder(files, nameFolder) {
       let existName = (check(folder, nameFolder))
       if (!existName) {
         console.log('Not exist folder Today in JSON data')
-        createFolderInFolder(parentFolder, nameFolder, true);
+        createFolderInFolder(files, parentFolder, nameFolder, true);
       } else {
         console.log('Exist folder Today in JSON data')
         folderIdUpload = existName;
@@ -217,7 +219,7 @@ async function checkExitsFolder(files, nameFolder) {
     } else {
       console.log("Don't have any data in data.json file")
       //tao folder moi && upload file
-      createFolderInFolder(parentFolder, nameFolder, true);
+      createFolderInFolder(files, parentFolder, nameFolder, true);
 
     }
   })
