@@ -67,7 +67,12 @@ const FastReportSchema = new Schema({
     date: {
         type: Date,
         default: Date.now
-    }
+    },
+    images: [{
+        idImage: {
+            type: String,
+        }
+    }],
 })
 
 module.exports = FastReport = mongoose.model('FastReport', FastReportSchema)

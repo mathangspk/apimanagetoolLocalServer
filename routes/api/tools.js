@@ -93,14 +93,12 @@ router.get('/skip', verify, (req, res) => {
 router.post('/', verify, async (req, res) => {
     //let validate the data before we a user
     var reqStatus = req.body.status;
+    console.log(req.body)
     //console.log(req.body)
     function getStatus(reqStatus) {
         return (reqStatus == "0" ? false : true)
     }
-    //console.log(getStatus(reqStatus))
-    // const { error } = toolValidation(req.body);
-    //console.log(error);
-    //if (error) return res.status(400).json(error.details[0].message);
+
 
     const newTool = new Tool({
         status: Boolean(getStatus(reqStatus)),
@@ -137,9 +135,10 @@ router.patch('/:id', verify, async (req, res) => {
         // let tokenUser = await jwt.verify(token, TOKEN_SECRET);
         let tool = await Tool.findById(req.params.id)
         //when user add tool
+        console.log(req.body)
         if (req.body.woInfo && req.body.woInfo._id) {
             if (parseInt(req.body.status) === 1 || (tool.status === 1 && parseInt(req.body.status) === 2)) {
-
+                console.log('1')
                 await Tool.updateOne(
                     { _id: req.params.id },
                     {
@@ -159,13 +158,15 @@ router.patch('/:id', verify, async (req, res) => {
                         }));
                 await Order.updateOne(
                     { _id: req.body.woInfo._id },
-                    { $set: { toolId: req.body.woInfo.toolId , status: req.body.woInfo.status } }
+                    { $set: { toolId: req.body.woInfo.toolId, status: req.body.woInfo.status } }
                 )
 
             } else {
                 res.status(500).json({ error: "Tool đã được sử dụng" })
             }
         } else {
+            console.log('2')
+            console.log(req.body.images)
             await Tool.updateOne(
                 { _id: req.params.id },
                 {
@@ -176,7 +177,7 @@ router.patch('/:id', verify, async (req, res) => {
                         type: req.body.type,
                         quantity: req.body.quantity,
                         images: req.body.images,
-                        wo:req.body.wo
+                        wo: req.body.wo
                     }
                 }).then(tool => res.status(200).json(
                     {

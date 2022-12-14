@@ -22,7 +22,7 @@ const ToolSchema = Schema({
         required: true
     },
     images: [{
-        filename: {
+        idImage: {
             type: String,
         }
     }],

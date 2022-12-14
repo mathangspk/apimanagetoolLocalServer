@@ -44,58 +44,71 @@ const drive = google.drive({
 })
 //create storage engine
 
-//var folderId = '1DhaSC-IrpGvW-tmU0l2_H2eb80XyOCMh'
 var obj = { folder: [] }
-//var folderIdUpload = '1DhaSC-IrpGvW-tmU0l2_H2eb80XyOCMh'
-console.log('quet chuong trinh')
 
-//https://drive.google.com/drive/folders/1DhaSC-IrpGvW-tmU0l2_H2eb80XyOCMh?usp=sharing
-// const upload = multer({
-//   storage: GoogleDriveStorage({
-//     drive: drive,
-//     parents: folderIdUpload,
-//     fileName: function (req, file, cb) {
-//       let filename = `test-${file.originalname}`;
-//       cb(null, filename);
-//     }
-//   }),
-//   limits: {
-//     files: 5, // allow up to 5 files per request,
-//     fileSize: 10 * 1024 * 1024 // 5 MB (max file size)
-//   },
-//   fileFilter: (req, file, cb) => {
-//     // allow images only
-//     if (!file.originalname.match(/\.(jpg|jpeg|png|gif|JPG|PNG|JPEG|GIF)$/)) {
-//       return cb(new Error('Only image are allowed.'), false);
-//     }
-//     cb(null, true);
-//   }
-// });
 const upload = multer();
-const uploadFile = async (fileObject, folderId, name) => {
-  const bufferStream = new stream.PassThrough();
-  bufferStream.end(fileObject.buffer);
-  console.log('uploadFile', folderId)
-  var fileMetadata = {
-    'name': name,
-    parents: [folderId]
-  };
-  const { data } = await google.drive({ version: "v3", auth: oauth2Client }).files.create({
-    resource: fileMetadata,
-    media: {
-      mimeType: fileObject.mimeType,
-      body: bufferStream,
-    },
-    // requestBody: {
-    //   name: fileObject.originalname,
-    //   parents: ["1DhaSC-IrpGvW-tmU0l2_H2eb80XyOCMh"],
-    //   //parents: folderId
-    // },
-    fields: "id,name",
-  });
-  console.log("folder id, ", folderId);
-  console.log(`Uploaded file ${data.name} ${data.id}`);
+
+async function setFilePublic(fileId) {
+  try {
+    await drive.permissions.create({
+      fileId,
+      requestBody: {
+        role: 'reader',
+        type: 'anyone'
+      }
+    })
+    const getUrl = await drive.files.get({
+      fileId,
+      fields: 'webViewLink, webContentLink'
+    })
+    return getUrl.data;
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+async function uploadFile(fileObject, folderId, name) {
+  try {
+    const bufferStream = new stream.PassThrough();
+    bufferStream.end(fileObject.buffer);
+    console.log('uploadFile', folderId)
+    var fileMetadata = {
+      'name': name,
+      parents: [folderId]
+    };
+    const { data } = await drive.files.create({
+      resource: fileMetadata,
+      media: {
+        mimeType: fileObject.mimeType,
+        body: bufferStream,
+      },
+      // requestBody: {
+      //   name: fileObject.originalname,
+      //   parents: ["1DhaSC-IrpGvW-tmU0l2_H2eb80XyOCMh"],
+      //   //parents: folderId
+      // },
+      fields: "id,name",
+    });
+    const getUrl = await setFilePublic(data.id)
+    //console.log(getUrl)
+    return data.id
+    //return getUrl
+    console.log("folder id, ", folderId);
+    console.log(`Uploaded file ${data.name} ${data.id}`);
+  } catch (error) {
+    console.log(error)
+  }
 };
+async function deleteFile(fileId) {
+  try {
+    const deletePic = await drive.files.delete({
+      fileId: fileId
+    })
+    console.log(deletePic.data, deletePic.status)
+  } catch (error) {
+    console.log(error)
+  }
+}
 function check(folder, nameFolder) {
   for (var i = 0; i < folder.length; i++) {
     console.log(folder[i].name)
@@ -174,9 +187,9 @@ async function createFolderInFolder(files, folderId, name, UploadFile) {
         if (UploadFile) {
           for (let f = 0; f < files.length; f += 1) {
             uploadFile(files[f], file.data.id, files[f].originalname);
+            //console.log(url)
           }
         }
-
       }
     });
 
@@ -184,45 +197,42 @@ async function createFolderInFolder(files, folderId, name, UploadFile) {
     console.log(error)
   }
 }
-
-
 async function checkExitsFolder(files, nameFolder) {
-  let parentFolder = '1DhaSC-IrpGvW-tmU0l2_H2eb80XyOCMh'; // Name: PicInMana
-  fs.readFile('data.json', 'utf8', (err, data) => {
-    if (err) {
-      console.log(err)
-    } else if (data) {
-      console.log('Exist data in Json File')
-      obj = JSON.parse(data);
-      let folder = obj.folder;
-      let idNameDelete = findIdDelete(obj)
-      if (!idNameDelete) {
-        console.log("Don't need remove any folder")
-      } else {
-        console.log("FolderId was deleted: ", idNameDelete)
-        deleteFolder(idNameDelete);
-      }
-      let existName = (check(folder, nameFolder))
-      if (!existName) {
-        console.log('Not exist folder Today in JSON data')
-        createFolderInFolder(files, parentFolder, nameFolder, true);
-      } else {
-        console.log('Exist folder Today in JSON data')
-        folderIdUpload = existName;
-        console.log(existName)
-        console.log(files[0].originalname)
-        //uploadFile(files[0], existName, 'fff');
-        for (let f = 0; f < files.length; f += 1) {
-          uploadFile(files[f], existName, files[f].originalname);
+  try {
+    let parentFolder = '1DhaSC-IrpGvW-tmU0l2_H2eb80XyOCMh'; // Name: PicInMana
+    fs.readFile('data.json', 'utf8', (err, data) => {
+      if (err) {
+        console.log(err)
+      } else if (data) {
+        console.log('Exist data in Json File')
+        obj = JSON.parse(data);
+        let folder = obj.folder;
+        let idNameDelete = findIdDelete(obj)
+        if (!idNameDelete) {
+          console.log("Don't need remove any folder")
+        } else {
+          console.log("FolderId was deleted: ", idNameDelete)
+          deleteFolder(idNameDelete);
         }
+        let existName = (check(folder, nameFolder))
+        if (!existName) {
+          console.log('Not exist folder Today in JSON data')
+          createFolderInFolder(files, parentFolder, nameFolder, true);
+        } else {
+          console.log('Exist folder Today in JSON data')
+          folderIdUpload = existName;
+          console.log(existName)
+          console.log(files[0].originalname)
+        }
+      } else {
+        console.log("Don't have any data in data.json file")
+        //tao folder moi && upload file
+        createFolderInFolder(files, parentFolder, nameFolder, true);
       }
-    } else {
-      console.log("Don't have any data in data.json file")
-      //tao folder moi && upload file
-      createFolderInFolder(files, parentFolder, nameFolder, true);
-
-    }
-  })
+    })
+  } catch (error) {
+    console.log(error)
+  }
 }
 
 async function createFileInFolder(folderId, name, mimeType, path) {
@@ -294,35 +304,26 @@ router.post('/', verify, upload.single('photo'), async (req, res) => {
 //router.post('/upload-photos', verify, upload.array('photos', 8), async (req, res) => {
 router.post('/upload-photos', verify, upload.any(), async (req, res) => {
   try {
-
     const photos = req.files;
     const { body, files } = req;
-
-    checkExitsFolder(photos, String(moment().format('YYYY-MM-DD')))
-    console.log(photos)
-    //uploadMultiFileInFolder(photos, '1DhaSC-IrpGvW-tmU0l2_H2eb80XyOCMh')
-    // // check if photos are available
-    // if (!photos) {
-    //   res.status(400).send({
-    //     status: false,
-    //     data: 'No photo is selected.'
-    //   });
-    // } else {
-    //   let data = [];
-    //   // iterate over all photos
-    //   photos.map(p => data.push({
-    //     filename: p.filename,
-    //     name: p.originalname,
-    //     mimetype: p.mimetype,
-    //     size: p.size
-    //   }));
-
-    // send response
+    let data = [];
+    //const status = await checkExitsFolder(photos, String(moment().format('YYYY-MM-DD')))
+    var dataPromise = photos.map(async photo => {
+      const id = await uploadFile(photo, '1DhaSC-IrpGvW-tmU0l2_H2eb80XyOCMh', photo.originalname) //upload to folder PicINTool
+      //console.log("show id ", id)
+      data.push({
+        idImage: id
+      })
+      console.log(data)
+      return data
+    })
+    data = await Promise.all(dataPromise);
+    console.log(data)
     res.send({
       status: true,
       message: 'Photos are uploaded.',
-      data: "data"
-    });
+      data: data[0]
+    })
   }
   catch (err) {
     res.status(500).send(err);
@@ -387,10 +388,14 @@ router.get('/image/:filename', (req, res) => {
 // files/del/:filename
 // Delete chunks from the db
 router.delete("/image/:filename", verify, async (req, res) => {
-  gfs.remove({ filename: req.params.filename, root: 'uploads' }, (err) => {
-    if (err) return res.status(500).json({ success: false })
-    return res.json({ success: true });
-  })
+  let fileId = req.params.filename
+  console.log(req.params.filename)
+  deleteFile(fileId)
+  res.json({ success: true });
+  // gfs.remove({ filename: req.params.filename, root: 'uploads' }, (err) => {
+  //   if (err) return res.status(500).json({ success: false })
+  //   return res.json({ success: true });
+  // })
 });
 
 
