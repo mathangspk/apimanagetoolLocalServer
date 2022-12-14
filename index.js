@@ -22,7 +22,15 @@ const methodOverride = require('method-override');
 const app = express();
 
 //@use cors 
-app.use(cors());
+app.use(cors(
+  //   {
+  //   'allowedHeaders': ['sessionId', 'Content-Type'],
+  //   'exposedHeaders': ['sessionId'],
+  //   'origin': '*',
+  //   'methods': 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  //   'preflightContinue': false
+  // }
+));
 
 //body parser 
 app.use(bodyParser.json());
@@ -67,4 +75,5 @@ const port = process.env.PORT || 4001
 app.listen(port, () => {
   console.log(`server running.... at ${port}`)
 })
+
 console.log('run')

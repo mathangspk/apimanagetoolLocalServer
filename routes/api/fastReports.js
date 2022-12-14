@@ -202,6 +202,7 @@ router.post('/', verify, async (req, res) => {
         timeStop: req.body.timeStop,
         status: req.body.status,
         statusTool: req.body.statusTool,
+        images: req.body.images,
     });
     newFastReport.save()
         .then(FastReport => res.json(FastReport))
@@ -263,6 +264,7 @@ router.patch('/:FastReportId', verify, async (req, res) => {
                     timeStop: req.body.timeStop,
                     status: req.body.status,
                     statusTool: req.body.statusTool,
+                    images: req.body.images,
                 }
             })
 
