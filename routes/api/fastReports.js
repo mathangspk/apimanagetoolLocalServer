@@ -107,7 +107,9 @@ router.get('/dashboard', verify, async (req, res) => {
 })
 router.get('/search', verify, async (req, res) => {
     let token = req.headers['auth-token']
-    console.log(req.query)
+    console.log(req.query.kks)
+    console.log(req.query.WO)
+
     //console.log(jwt.verify(token, TOKEN_SECRET))
     let limit = Number(req.query.limit)
     let skip = Number(req.query.skip)
@@ -115,7 +117,8 @@ router.get('/search', verify, async (req, res) => {
         WO: { '$regex': req.query.wo || '' },
         PCT: { '$regex': req.query.pct || '' },
         status: { '$regex': req.query.status !== 'ALL' && req.query.status || '' },
-        content: { '$regex': req.query.content || '' }
+        content: { '$regex': req.query.content || '' },
+        KKS: { '$regex': req.query.kks || '' }
     }
     if (req.query.userId) {
         paramsQuery.userId = { '$in': req.query.userId.split(',') }
