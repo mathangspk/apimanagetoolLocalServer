@@ -16,7 +16,6 @@ var { google } = require('googleapis')
 const CLIENT_ID = "1053431940611-he0t7ad89i0edv52qdhj549rfqao92tn.apps.googleusercontent.com"
 const CLIENT_SECRET = "jBMWRinXEpdJZfDZmHG73FLs"
 const REDIRECT_URI = "https://developers.google.com/oauthplayground"
-
 const REFRESH_TOKEN = "1//04zJG01M7dZrKCgYIARAAGAQSNwF-L9Ir5FumS0D58f4TOgJMle1cshuTW6ErdnpMZScoRn4S1nxlb6U-s7WEmIBL03Gzt_oS_Uw"
 
 const oauth2Client = new google.auth.OAuth2(
@@ -66,7 +65,6 @@ async function setFilePublic(fileId) {
     console.log(error)
   }
 }
-
 async function uploadFile(fileObject, folderId, name) {
   try {
     const bufferStream = new stream.PassThrough();
@@ -82,11 +80,6 @@ async function uploadFile(fileObject, folderId, name) {
         mimeType: fileObject.mimeType,
         body: bufferStream,
       },
-      // requestBody: {
-      //   name: fileObject.originalname,
-      //   parents: ["1DhaSC-IrpGvW-tmU0l2_H2eb80XyOCMh"],
-      //   //parents: folderId
-      // },
       fields: "id,name",
     });
     const getUrl = await setFilePublic(data.id)
@@ -109,160 +102,64 @@ async function deleteFile(fileId) {
     console.log(error)
   }
 }
-function check(folder, nameFolder) {
-  for (var i = 0; i < folder.length; i++) {
-    console.log(folder[i].name)
-    if (folder[i].name === nameFolder) {
-      return folder[i].id;
-    }
-  } return false;
-}
-
-function findIdDelete(obj) {
-  for (var i = 0; i < obj.folder.length; i++) {
-    var today = new Date()
-    var priorDate = new Date().setDate(today.getDate() - 7)
-    //console.log(moment(priorDate).format('YYYY-MM-DD'))
-    priorDate = moment(priorDate).format('YYYY-MM-DD');
-    if (obj.folder[i].name === priorDate) {
-      let idDelete = obj.folder[i].id;
-      obj.folder.splice(0, 1);
-      var json = JSON.stringify(obj)
-      fs.writeFile('data.json', json, 'utf8', () => {
-        console.log('file write')
-      })
-      return idDelete;
-    }
-  } return false;
-}
-async function deleteFolder(fileId) {
-  try {
-    const response = await drive.files.delete({
-      fileId,
-    });
-    console.log(response.data, response.status)
-
-  } catch (error) {
-    console.log(error.message)
-  }
-}
-async function uploadMultiFileInFolder(files, folderId) {
-  console.log('Starting upload file to Folder: ', folderId)
-  console.log("gggg", files)
-  for (var i in files) {
-    fileInfo[i] = {
-      name: files[i],
-      pathName: pathName + '/' + files[i],
-      mimeType: mime.lookup(files[i]),
-    }
-    await createFileInFolder(folderId, fileInfo[i].name, fileInfo[i].mimeType, fileInfo[i].pathName)
-  }
-}
+async function createFolder(drive, folderName, parentFolderId) {
+  const folderMetadata = {
+    name: folderName,
+    mimeType: 'application/vnd.google-apps.folder',
+    parents: [parentFolderId],
+  };
+  const res = await drive.files.create({
+    resource: folderMetadata,
+    fields: 'id',
+  });
+  return res.data.id;
+};
 
 
-async function createFolderInFolder(files, folderId, name, UploadFile) {
-  try {
-    var fileMetadata = {
-      'name': name,
-      'mimeType': 'application/vnd.google-apps.folder',
-      parents: [folderId]
-    };
-    await drive.files.create({
-      resource: fileMetadata,
-      fields: 'id'
-    }, function (err, file) {
-      if (err) {
-        // Handle error
-        console.error(err);
-      } else {
-        folderIdUpload = file.data.id;
-        console.log('Create Folder successfully');
-        console.log('Folder Id: ', file.data.id);
+async function checkExitsFolder(folderName, parentFolderId, fileUploads) {
+  // Sử dụng API để tìm kiếm các thư mục con của thư mục cha có tên là folderName
+  drive.files.list({
+    q: "mimeType='application/vnd.google-apps.folder' and trashed=false and name='" + folderName + "' and '" + parentFolderId + "' in parents",
+    fields: 'nextPageToken, files(id, name)',
+  }, async (err, res) => {
+    if (err) return console.log('Lỗi:', err);
+    const folders = res.data.files;
+    let data = [];
+    if (folders.length === 0) {
 
-        obj.folder.push({ id: file.data.id, name: name, time: moment() })
-        var json = JSON.stringify(obj)
-        fs.writeFile('data.json', json, 'utf8', () => {
-          console.log('Save data to data.json complete!')
+      const folderId = await createFolder(drive, folderName, '1EiRRncOVhwHl2TA33umq9YqPe6qSrbLs');
+      var dataPromise = fileUploads.map(async fileUpload => {
+        const id = await uploadFile(fileUpload, folderId, fileUpload.originalname) //upload to folder PicINTool
+        //console.log("show id ", id)
+        data.push({
+          idFile: id
         })
-        if (UploadFile) {
-          for (let f = 0; f < files.length; f += 1) {
-            uploadFile(files[f], file.data.id, files[f].originalname);
-            //console.log(url)
-          }
-        }
-      }
-    });
+        console.log(data)
+        return data
+      })
+      data = await Promise.all(dataPromise);
+      console.log(data)
+      return data
+    } else {
+      // Nếu đã có thư mục tồn tại, trả về ID của thư mục đó
+      const folderId = folders[0].id;
+      console.log(`Thư mục "${folderName}" đã tồn tại trong thư mục cha với ID là "${folderId}".`);
+      var dataPromise = fileUploads.map(async fileUpload => {
+        const id = await uploadFile(fileUpload, folderId, fileUpload.originalname) //upload to folder PicINTool
+        //console.log("show id ", id)
+        data.push({
+          idFile: id
+        })
+        console.log(data)
+        return data
+      })
+      data = await Promise.all(dataPromise);
+      console.log(data)
+      return data
 
-  } catch (error) {
-    console.log(error)
-  }
+    }
+  });
 }
-async function checkExitsFolder(files, nameFolder) {
-  try {
-    let parentFolder = '1DhaSC-IrpGvW-tmU0l2_H2eb80XyOCMh'; // Name: PicInMana
-    fs.readFile('data.json', 'utf8', (err, data) => {
-      if (err) {
-        console.log(err)
-      } else if (data) {
-        console.log('Exist data in Json File')
-        obj = JSON.parse(data);
-        let folder = obj.folder;
-        let idNameDelete = findIdDelete(obj)
-        if (!idNameDelete) {
-          console.log("Don't need remove any folder")
-        } else {
-          console.log("FolderId was deleted: ", idNameDelete)
-          deleteFolder(idNameDelete);
-        }
-        let existName = (check(folder, nameFolder))
-        if (!existName) {
-          console.log('Not exist folder Today in JSON data')
-          createFolderInFolder(files, parentFolder, nameFolder, true);
-        } else {
-          console.log('Exist folder Today in JSON data')
-          folderIdUpload = existName;
-          console.log(existName)
-          console.log(files[0].originalname)
-        }
-      } else {
-        console.log("Don't have any data in data.json file")
-        //tao folder moi && upload file
-        createFolderInFolder(files, parentFolder, nameFolder, true);
-      }
-    })
-  } catch (error) {
-    console.log(error)
-  }
-}
-
-async function createFileInFolder(folderId, name, mimeType, path) {
-  try {
-    var folderId = folderId;
-    var fileMetadata = {
-      'name': name,
-      parents: [folderId]
-    };
-    var media = {
-      mimeType,
-      body: fs.createReadStream(path)
-    };
-    await drive.files.create({
-      resource: fileMetadata,
-      media: media,
-      fields: 'id, name'
-    }, function (err, file) {
-      if (err) {
-        // Handle error
-        console.error(err);
-      } else {
-        console.log('Upload file: ', file.data, 'complete')
-      }
-    });
-  } catch (error) {
-    console.log(error)
-  }
-}
-
 //@route Post upload
 router.post('/', verify, upload.single('photo'), async (req, res) => {
   try {
@@ -305,6 +202,7 @@ router.post('/', verify, upload.single('photo'), async (req, res) => {
 router.post('/upload-photos', verify, upload.any(), async (req, res) => {
   try {
     const photos = req.files;
+    console.log(photos)
     const { body, files } = req;
     let data = [];
     //const status = await checkExitsFolder(photos, String(moment().format('YYYY-MM-DD')))
@@ -322,6 +220,27 @@ router.post('/upload-photos', verify, upload.any(), async (req, res) => {
     res.send({
       status: true,
       message: 'Photos are uploaded.',
+      data: data[0]
+    })
+  }
+  catch (err) {
+    res.status(500).send(err);
+    console.log(err)
+  }
+});
+router.post('/upload-files', verify, upload.any(), async (req, res) => {
+  try {
+    //console.log(req)
+    const fileUploads = req.files;
+    //console.log(fileUploads)
+
+
+    const folderName = new Date().toISOString().slice(0, 10); // YYYY-MM-DD format
+    const parentId = '1EiRRncOVhwHl2TA33umq9YqPe6qSrbLs';
+    const data = await checkExitsFolder(folderName, parentId, fileUploads)
+    res.send({
+      status: true,
+      message: 'Files are uploaded.',
       data: data[0]
     })
   }
@@ -392,11 +311,5 @@ router.delete("/image/:filename", verify, async (req, res) => {
   console.log(req.params.filename)
   deleteFile(fileId)
   res.json({ success: true });
-  // gfs.remove({ filename: req.params.filename, root: 'uploads' }, (err) => {
-  //   if (err) return res.status(500).json({ success: false })
-  //   return res.json({ success: true });
-  // })
 });
-
-
 module.exports = router;

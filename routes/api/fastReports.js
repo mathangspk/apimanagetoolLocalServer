@@ -107,8 +107,9 @@ router.get('/dashboard', verify, async (req, res) => {
 })
 router.get('/search', verify, async (req, res) => {
     let token = req.headers['auth-token']
-    console.log(req.query.kks)
-    console.log(req.query.WO)
+    //console.log(req)
+    //console.log(req.query.kks)
+    //console.log(req.query.WO)
 
     //console.log(jwt.verify(token, TOKEN_SECRET))
     let limit = Number(req.query.limit)
@@ -263,6 +264,10 @@ router.patch('/:FastReportId', verify, async (req, res) => {
                     NV: req.body.NV,
                     note: req.body.note,
                     content: req.body.content,
+                    error: req.body.error,
+                    result: req.body.result,
+                    employ: req.body.employ,
+                    time: req.body.time,
                     timeStart: req.body.timeStart,
                     timeStop: req.body.timeStop,
                     status: req.body.status,
