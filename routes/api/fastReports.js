@@ -273,6 +273,7 @@ router.patch('/:FastReportId', verify, async (req, res) => {
                     status: req.body.status,
                     statusTool: req.body.statusTool,
                     images: req.body.images,
+                    files: req.body.files
                 }
             })
 

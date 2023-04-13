@@ -115,51 +115,80 @@ async function createFolder(drive, folderName, parentFolderId) {
   return res.data.id;
 };
 
-
 async function checkExitsFolder(folderName, parentFolderId, fileUploads) {
-  // Sử dụng API để tìm kiếm các thư mục con của thư mục cha có tên là folderName
-  drive.files.list({
-    q: "mimeType='application/vnd.google-apps.folder' and trashed=false and name='" + folderName + "' and '" + parentFolderId + "' in parents",
-    fields: 'nextPageToken, files(id, name)',
-  }, async (err, res) => {
-    if (err) return console.log('Lỗi:', err);
+  try {
+    const res = await drive.files.list({
+      q: "mimeType='application/vnd.google-apps.folder' and trashed=false and name='" + folderName + "' and '" + parentFolderId + "' in parents",
+      fields: 'nextPageToken, files(id, name)',
+    });
     const folders = res.data.files;
-    let data = [];
     if (folders.length === 0) {
-
       const folderId = await createFolder(drive, folderName, '1EiRRncOVhwHl2TA33umq9YqPe6qSrbLs');
-      var dataPromise = fileUploads.map(async fileUpload => {
-        const id = await uploadFile(fileUpload, folderId, fileUpload.originalname) //upload to folder PicINTool
-        //console.log("show id ", id)
-        data.push({
-          idFile: id
-        })
-        console.log(data)
-        return data
-      })
-      data = await Promise.all(dataPromise);
-      console.log(data)
-      return data
+      const data = await Promise.all(fileUploads.map(async (fileUpload) => {
+        const id = await uploadFile(fileUpload, folderId, fileUpload.originalname);
+        console.log(`Uploaded file ${fileUpload.originalname} with ID: ${id}`);
+        return { idFile: id };
+      }));
+      console.log('All files uploaded successfully:', data);
+      return data;
     } else {
-      // Nếu đã có thư mục tồn tại, trả về ID của thư mục đó
       const folderId = folders[0].id;
-      console.log(`Thư mục "${folderName}" đã tồn tại trong thư mục cha với ID là "${folderId}".`);
-      var dataPromise = fileUploads.map(async fileUpload => {
-        const id = await uploadFile(fileUpload, folderId, fileUpload.originalname) //upload to folder PicINTool
-        //console.log("show id ", id)
-        data.push({
-          idFile: id
-        })
-        console.log(data)
-        return data
-      })
-      data = await Promise.all(dataPromise);
-      console.log(data)
-      return data
-
+      console.log(`Folder "${folderName}" already exists with ID: "${folderId}".`);
+      const data = await Promise.all(fileUploads.map(async (fileUpload) => {
+        const id = await uploadFile(fileUpload, folderId, fileUpload.originalname);
+        console.log(`Uploaded file ${fileUpload.originalname} with ID: ${id}`);
+        return { idFile: id };
+      }));
+      console.log('All files uploaded successfully:', data);
+      return data;
     }
-  });
+  } catch (error) {
+    console.log(error);
+  }
 }
+// async function checkExitsFolder(folderName, parentFolderId, fileUploads) {
+//   // Sử dụng API để tìm kiếm các thư mục con của thư mục cha có tên là folderName
+//   drive.files.list({
+//     q: "mimeType='application/vnd.google-apps.folder' and trashed=false and name='" + folderName + "' and '" + parentFolderId + "' in parents",
+//     fields: 'nextPageToken, files(id, name)',
+//   }, async (err, res) => {
+//     if (err) return console.log('Lỗi:', err);
+//     const folders = res.data.files;
+//     let data = [];
+//     if (folders.length === 0) {
+
+//       const folderId = await createFolder(drive, folderName, '1EiRRncOVhwHl2TA33umq9YqPe6qSrbLs');
+//       var dataPromise = fileUploads.map(async fileUpload => {
+//         const id = await uploadFile(fileUpload, folderId, fileUpload.originalname) //upload to folder PicINTool
+//         //console.log("show id ", id)
+//         data.push({
+//           idFile: id
+//         })
+//         //console.log(data)
+//         return data
+//       })
+//       data = await Promise.all(dataPromise);
+//       console.log(data)
+//       return data
+//     } else {
+//       // Nếu đã có thư mục tồn tại, trả về ID của thư mục đó
+//       const folderId = folders[0].id;
+//       console.log(`Thư mục "${folderName}" đã tồn tại trong thư mục cha với ID là "${folderId}".`);
+//       var dataPromise = fileUploads.map(async fileUpload => {
+//         const id = await uploadFile(fileUpload, folderId, fileUpload.originalname) //upload to folder PicINTool
+//         //console.log("show id ", id)
+//         data.push({
+//           idFile: id
+//         })
+//         //console.log(data)
+//         return data
+//       })
+//       data = await Promise.all(dataPromise);
+//       //console.log(data)
+//       return data
+//     }
+//   });
+// }
 //@route Post upload
 router.post('/', verify, upload.single('photo'), async (req, res) => {
   try {
@@ -198,29 +227,19 @@ router.post('/', verify, upload.single('photo'), async (req, res) => {
 
 
 //@route POST many image
-//router.post('/upload-photos', verify, upload.array('photos', 8), async (req, res) => {
 router.post('/upload-photos', verify, upload.any(), async (req, res) => {
   try {
     const photos = req.files;
-    console.log(photos)
-    const { body, files } = req;
-    let data = [];
-    //const status = await checkExitsFolder(photos, String(moment().format('YYYY-MM-DD')))
-    var dataPromise = photos.map(async photo => {
-      const id = await uploadFile(photo, '1DhaSC-IrpGvW-tmU0l2_H2eb80XyOCMh', photo.originalname) //upload to folder PicINTool
-      //console.log("show id ", id)
-      data.push({
-        idImage: id
+    const data = await Promise.all(
+      photos.map(async photo => {
+        const id = await uploadFile(photo, '1DhaSC-IrpGvW-tmU0l2_H2eb80XyOCMh', photo.originalname);
+        return { idImage: id };
       })
-      console.log(data)
-      return data
-    })
-    data = await Promise.all(dataPromise);
-    console.log(data)
+    );
     res.send({
       status: true,
       message: 'Photos are uploaded.',
-      data: data[0]
+      data: data
     })
   }
   catch (err) {
@@ -236,12 +255,15 @@ router.post('/upload-files', verify, upload.any(), async (req, res) => {
 
 
     const folderName = new Date().toISOString().slice(0, 10); // YYYY-MM-DD format
-    const parentId = '1EiRRncOVhwHl2TA33umq9YqPe6qSrbLs';
-    const data = await checkExitsFolder(folderName, parentId, fileUploads)
+    const parentFolderId = '1EiRRncOVhwHl2TA33umq9YqPe6qSrbLs';
+    //-----------------------------------------------------//
+
+    //----------------------------------------------------//
+    const data = await checkExitsFolder(folderName, parentFolderId, fileUploads)
     res.send({
       status: true,
       message: 'Files are uploaded.',
-      data: data[0]
+      data: data
     })
   }
   catch (err) {
