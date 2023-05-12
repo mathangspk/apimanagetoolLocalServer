@@ -260,6 +260,7 @@ router.post('/upload-files', verify, upload.any(), async (req, res) => {
 
     //----------------------------------------------------//
     const data = await checkExitsFolder(folderName, parentFolderId, fileUploads)
+    console.log(data)
     res.send({
       status: true,
       message: 'Files are uploaded.',
