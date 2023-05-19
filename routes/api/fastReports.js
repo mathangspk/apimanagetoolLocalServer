@@ -250,6 +250,7 @@ router.post('/', verify, async (req, res) => {
 //update FastReport
 router.patch('/:FastReportId', verify, async (req, res) => {
     try {
+        console.log('sua')
         var toolId = [];
         const updateFastReport = await FastReport.updateOne(
             { _id: req.params.FastReportId },
