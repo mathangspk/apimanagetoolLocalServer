@@ -73,6 +73,11 @@ const FastReportSchema = new Schema({
             type: String,
         }
     }],
+    files: [{
+        idFile: {
+            type: String,
+        }
+    }],
 })
 
 module.exports = FastReport = mongoose.model('FastReport', FastReportSchema)
