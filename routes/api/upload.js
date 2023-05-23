@@ -82,7 +82,7 @@ async function uploadFile(fileObject, folderId, name) {
       },
       fields: "id,name",
     });
-    const getUrl = await setFilePublic(data.id)
+    //const getUrl = await setFilePublic(data.id)
     //console.log(getUrl)
     return data.id
     //return getUrl
@@ -127,7 +127,7 @@ async function checkExitsFolder(folderName, parentFolderId, fileUploads) {
       const data = await Promise.all(fileUploads.map(async (fileUpload) => {
         const id = await uploadFile(fileUpload, folderId, fileUpload.originalname);
         console.log(`Uploaded file ${fileUpload.originalname} with ID: ${id}`);
-        return { idFile: id };
+        return { idFile: id, name: fileUpload.originalname };
       }));
       console.log('All files uploaded successfully:', data);
       return data;
@@ -137,7 +137,7 @@ async function checkExitsFolder(folderName, parentFolderId, fileUploads) {
       const data = await Promise.all(fileUploads.map(async (fileUpload) => {
         const id = await uploadFile(fileUpload, folderId, fileUpload.originalname);
         console.log(`Uploaded file ${fileUpload.originalname} with ID: ${id}`);
-        return { idFile: id };
+        return { idFile: id, name: fileUpload.originalname };
       }));
       console.log('All files uploaded successfully:', data);
       return data;
@@ -146,49 +146,6 @@ async function checkExitsFolder(folderName, parentFolderId, fileUploads) {
     console.log(error);
   }
 }
-// async function checkExitsFolder(folderName, parentFolderId, fileUploads) {
-//   // Sử dụng API để tìm kiếm các thư mục con của thư mục cha có tên là folderName
-//   drive.files.list({
-//     q: "mimeType='application/vnd.google-apps.folder' and trashed=false and name='" + folderName + "' and '" + parentFolderId + "' in parents",
-//     fields: 'nextPageToken, files(id, name)',
-//   }, async (err, res) => {
-//     if (err) return console.log('Lỗi:', err);
-//     const folders = res.data.files;
-//     let data = [];
-//     if (folders.length === 0) {
-
-//       const folderId = await createFolder(drive, folderName, '1EiRRncOVhwHl2TA33umq9YqPe6qSrbLs');
-//       var dataPromise = fileUploads.map(async fileUpload => {
-//         const id = await uploadFile(fileUpload, folderId, fileUpload.originalname) //upload to folder PicINTool
-//         //console.log("show id ", id)
-//         data.push({
-//           idFile: id
-//         })
-//         //console.log(data)
-//         return data
-//       })
-//       data = await Promise.all(dataPromise);
-//       console.log(data)
-//       return data
-//     } else {
-//       // Nếu đã có thư mục tồn tại, trả về ID của thư mục đó
-//       const folderId = folders[0].id;
-//       console.log(`Thư mục "${folderName}" đã tồn tại trong thư mục cha với ID là "${folderId}".`);
-//       var dataPromise = fileUploads.map(async fileUpload => {
-//         const id = await uploadFile(fileUpload, folderId, fileUpload.originalname) //upload to folder PicINTool
-//         //console.log("show id ", id)
-//         data.push({
-//           idFile: id
-//         })
-//         //console.log(data)
-//         return data
-//       })
-//       data = await Promise.all(dataPromise);
-//       //console.log(data)
-//       return data
-//     }
-//   });
-// }
 //@route Post upload
 router.post('/', verify, upload.single('photo'), async (req, res) => {
   try {
@@ -330,6 +287,12 @@ router.get('/image/:filename', (req, res) => {
 // files/del/:filename
 // Delete chunks from the db
 router.delete("/image/:filename", verify, async (req, res) => {
+  let fileId = req.params.filename
+  console.log(req.params.filename)
+  deleteFile(fileId)
+  res.json({ success: true });
+});
+router.delete("/file/:filename", verify, async (req, res) => {
   let fileId = req.params.filename
   console.log(req.params.filename)
   deleteFile(fileId)
