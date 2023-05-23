@@ -76,6 +76,9 @@ const FastReportSchema = new Schema({
     files: [{
         idFile: {
             type: String,
+        },
+        name: {
+            type: String,
         }
     }],
 })
