@@ -22,6 +22,10 @@ const OrderSchema = new Schema({
         type: String,
         required: true
     },
+    workType: {
+        type: String,
+        required: true
+    },
     content: {
         type: String,
     },
