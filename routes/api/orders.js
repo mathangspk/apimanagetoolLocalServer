@@ -114,12 +114,23 @@ router.get('/search', verify, async (req, res) => {
     let paramsQuery = {
         WO: { '$regex': req.query.wo || '' },
         PCT: { '$regex': req.query.pct || '' },
+
+        //workType: null,
+        //workType,
+        workType: { '$regex': req.query.workType !== 'ALL' && req.query.workType || '' },
+        //workType: { '$regex': req.query.workType !== 'ALL' && req.query.workType || '^.*$' },
         status: { '$regex': req.query.status !== 'ALL' && req.query.status || '' },
         content: { '$regex': req.query.content || '' }
     }
     if (req.query.userId) {
         paramsQuery.userId = { '$in': req.query.userId.split(',') }
     }
+    //console.log(paramsQuery)
+    //----Xử lý dữ liệu các trường không có giá trị workType
+    // Find documents that don't have the 'workType' field
+    //paramsQuery.workType = { $exists: false };
+    // Add a new field 'workType' with value null to those documents
+    //await Order.updateMany(paramsQuery, { $set: { workType: "" } });
 
     var countOrder = await Order.find(paramsQuery)
         .countDocuments({}, (err, count) => {
@@ -189,6 +200,7 @@ router.post('/', verify, async (req, res) => {
         toolId: req.body.toolId,
         WO: req.body.WO,
         location: req.body.location,
+        workType: req.body.workType,
         KKS: req.body.KKS,
         PCT: pctT + "/" + month + "/" + year,
         NV: req.body.NV,
@@ -250,6 +262,7 @@ router.patch('/:orderId', verify, async (req, res) => {
                     toolId: req.body.toolId,
                     WO: req.body.WO,
                     location: req.body.location,
+                    workType: req.body.workType,
                     KKS: req.body.KKS,
                     PCT: req.body.PCT,
                     NV: req.body.NV,

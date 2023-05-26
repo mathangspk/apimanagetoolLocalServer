@@ -5,5 +5,6 @@ module.exports = {
     //mongoURI:'mongodb://manage:!manage18062021@128.199.82.173:27017/manageTool'
     //mongoURI: 'mongodb://manage:!manage@113.161.220.166:27017/manageTool'
     mongoURI: 'mongodb://manage:!manage@113.161.220.166:27017/manageToolTest'
+    //mongoURI: 'mongodb://manage:!manage@192.168.1.233:27017/manageToolTest'
     //mongoURI:'mongodb://user:123456@128.199.82.173:27017/manageToolTest'
 }

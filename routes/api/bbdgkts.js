@@ -56,7 +56,6 @@ router.get('/search', verify, async (req, res) => {
         content: { '$regex': req.query.content || '' },
         BBDGKT: { '$regex': req.query.bbdgkt || '' },
         WO: { '$regex': req.query.wo || '' },
-        BBDGKT: { '$regex': req.query.bbdgkt || '' }
     }
     if (req.query.userId) {
         paramsQuery.userId = { '$in': req.query.userId.split(',') }
@@ -103,9 +102,9 @@ router.post('/', verify, async (req, res) => {
     let groupNumber;
     if (groupName === "Tự Động" || groupName === "Kiểm Nhiệt") {
         groupNumber = 2;
-    } else if (groupName === "Thiết bị phụ" || groupName === "HRSG-BOP" || groupName === "Tổ Turbine" ) {
+    } else if (groupName === "Thiết bị phụ" || groupName === "HRSG-BOP" || groupName === "Tổ Turbine") {
         groupNumber = 4;
-    } else if (groupName === "Máy Tĩnh" || groupName === "Máy Động" ) {
+    } else if (groupName === "Máy Tĩnh" || groupName === "Máy Động") {
         groupNumber = 3;
     }
     const { error } = bbdgktValidation(req.body);
