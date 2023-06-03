@@ -301,6 +301,25 @@ router.patch('/:FastReportId', verify, async (req, res) => {
         res.json({ message: err });
     }
 })
+
+//update FastReport
+router.patch('/addFiles/:FastReportId', verify, async (req, res) => {
+    try {
+        console.log('fffff')
+        console.log(req.body)
+        const updateFastReport = await FastReport.updateOne(
+            { _id: req.body.id },
+            {
+                $set: {
+                    files: req.body.listFile
+                }
+            })
+        res.json(updateFastReport);
+        //console.log(toolId);
+    } catch (err) {
+        res.json({ message: err });
+    }
+})
 //@route get FastReport by id
 router.get('/:id', verify, (req, res) => {
     FastReport.findById(req.params.id).populate("toolId", "-toolId -__v").populate("userId", "-password -__v").populate("NV", "-password -__v")
