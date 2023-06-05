@@ -82,8 +82,8 @@ async function uploadFile(fileObject, folderId, name) {
       },
       fields: "id,name",
     });
-    //const getUrl = await setFilePublic(data.id)
-    //console.log(getUrl)
+    const getUrl = await setFilePublic(data.id)
+    console.log(getUrl)
     return data.id
     //return getUrl
     console.log("folder id, ", folderId);
