@@ -133,6 +133,24 @@ router.post('/', verify, async (req, res) => {
         .catch(err => res.json(err))
         ;
 })
+//update file bbdgkt
+router.patch('/addFiles/:bbdgktId', verify, async (req, res) => {
+    try {
+        console.log('fffff')
+        console.log(req.body)
+        const updatebbdgkt = await bbdgkt.updateOne(
+            { _id: req.body.id },
+            {
+                $set: {
+                    files: req.body.listFile
+                }
+            })
+        res.json(updatebbdgkt);
+        //console.log(toolId);
+    } catch (err) {
+        res.json({ message: err });
+    }
+})
 
 //@route DELETE api/bbdgkts:id
 //@desc delete an bbdgkts

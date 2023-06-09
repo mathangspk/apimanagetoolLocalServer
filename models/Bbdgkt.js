@@ -29,7 +29,15 @@ const BbdgktSchema = new Schema({
     date: {
         type: Date,
         default: Date.now
-    }
+    },
+    files: [{
+        idFile: {
+            type: String,
+        },
+        name: {
+            type: String,
+        }
+    }],
 })
 
 module.exports = Bbdgkt = mongoose.model('bbdgkt', BbdgktSchema)

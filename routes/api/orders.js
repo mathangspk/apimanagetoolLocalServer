@@ -117,7 +117,10 @@ router.get('/search', verify, async (req, res) => {
 
         //workType: null,
         //workType,
-        workType: { '$regex': req.query.workType !== 'ALL' && req.query.workType || '' },
+        //workType: { '$regex': '^' + req.query.workType + '$' },
+        workType: req.query.workType !== 'ALL' ? { '$regex': '^' + req.query.workType + '$' } : { '$regex': '.*' },
+
+        //workType: { '$regex': req.query.workType !== 'ALL' && req.query.workType || '' },
         //workType: { '$regex': req.query.workType !== 'ALL' && req.query.workType || '^.*$' },
         status: { '$regex': req.query.status !== 'ALL' && req.query.status || '' },
         content: { '$regex': req.query.content || '' }
