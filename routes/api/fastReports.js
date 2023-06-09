@@ -107,7 +107,7 @@ router.get('/dashboard', verify, async (req, res) => {
 })
 router.get('/search', verify, async (req, res) => {
     let token = req.headers['auth-token']
-    //console.log(req)
+    console.log(req.query)
     //console.log(req.query.kks)
     //console.log(req.query.WO)
 
