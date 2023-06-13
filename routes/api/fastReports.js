@@ -226,35 +226,35 @@ router.post('/', verify, async (req, res) => {
 //@route DELETE api/FastReports:id
 //@desc delete an FastReports
 //@access Public
-// router.delete('/:id', verify, async (req, res) => {
-//     try {
-//         var toolId = [];
-//         await FastReport.findByIdAndDelete({ _id: req.params.id }).then(wo => {
-//             if (!wo) {
-//                 return res.status(404).json({ error: "No Wo Found" });
-//             }
-//             else {
-//                 toolId = wo.toolId;
-//                 res.json(wo);
-//             }
-//         })
-//         console.log(toolId);
-//         toolId.forEach(_id => {
-//             Tool.findByIdAndUpdate(_id, { $set: { status: 1 } }).then(toolDeleted => {
-//                 if (!toolDeleted) {
-//                     return res.status(404).json({ error: "No toolDelete Found" });
-//                 } else {
-//                     ;
-//                     //res.status(200).json({ success: true });
-//                 }
-//             }
-//             )
-//         })
-//     }
-//     catch (err) {
-//         res.status(404).json({ success: false })
-//     }
-// })
+router.delete('/:id', verify, async (req, res) => {
+    try {
+        var toolId = [];
+        await FastReport.findByIdAndDelete({ _id: req.params.id }).then(wo => {
+            if (!wo) {
+                return res.status(404).json({ error: "No Wo Found" });
+            }
+            else {
+                toolId = wo.toolId;
+                res.json(wo);
+            }
+        })
+        console.log(toolId);
+        toolId.forEach(_id => {
+            Tool.findByIdAndUpdate(_id, { $set: { status: 1 } }).then(toolDeleted => {
+                if (!toolDeleted) {
+                    return res.status(404).json({ error: "No toolDelete Found" });
+                } else {
+                    ;
+                    //res.status(200).json({ success: true });
+                }
+            }
+            )
+        })
+    }
+    catch (err) {
+        res.status(404).json({ success: false })
+    }
+})
 
 //update FastReport
 router.patch('/:FastReportId', verify, async (req, res) => {
