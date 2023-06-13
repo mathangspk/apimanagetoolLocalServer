@@ -105,40 +105,49 @@ router.get('/dashboard', verify, async (req, res) => {
         }
     )
 })
+
 router.get('/search', verify, async (req, res) => {
-    let token = req.headers['auth-token']
-    console.log(req.query)
-    //console.log(req.query.kks)
-    //console.log(req.query.WO)
+    try {
+        let token = req.headers['auth-token'];
+        console.log(req.query);
+        let limit = Number(req.query.limit);
+        let skip = Number(req.query.skip);
+        let paramsQuery = {
+            WO: { '$regex': req.query.wo || '' },
+            PCT: { '$regex': req.query.pct || '' },
+            status: { '$regex': req.query.status !== 'ALL' && req.query.status || '' },
+            content: { '$regex': req.query.content || '' },
+            KKS: { '$regex': req.query.kks || '' },
+            //date: { '$regex': req.query.date || '' }
+        };
+        if (req.query.userId) {
+            paramsQuery.userId = { '$in': req.query.userId.split(',') };
+        }
+        if (req.query.dateFrom && req.query.dateTo) {
+            const dateFromParts = req.query.dateFrom.split('/').map(Number);
+            const dateToParts = req.query.dateTo.split('/').map(Number);
+            const startDate = new Date(dateFromParts[2], dateFromParts[1] - 1, dateFromParts[0]);
+            const endDate = new Date(dateToParts[2], dateToParts[1] - 1, dateToParts[0], 23, 59, 59, 999);
+            paramsQuery.date = { $gte: startDate, $lte: endDate };
+        }
+        console.log(paramsQuery)
 
-    //console.log(jwt.verify(token, TOKEN_SECRET))
-    let limit = Number(req.query.limit)
-    let skip = Number(req.query.skip)
-    let paramsQuery = {
-        WO: { '$regex': req.query.wo || '' },
-        PCT: { '$regex': req.query.pct || '' },
-        status: { '$regex': req.query.status !== 'ALL' && req.query.status || '' },
-        content: { '$regex': req.query.content || '' },
-        KKS: { '$regex': req.query.kks || '' }
-    }
-    if (req.query.userId) {
-        paramsQuery.userId = { '$in': req.query.userId.split(',') }
-    }
+        const countFastReport = await FastReport.find(paramsQuery).countDocuments();
+        const fastReports = await FastReport.find(paramsQuery)
+            .skip(skip)
+            .limit(limit)
+            .populate("userId", "-password -__v -date")
+            .sort({ date: -1 });
 
-    var countFastReport = await FastReport.find(paramsQuery)
-        .countDocuments({}, (err, count) => {
-            return count;
+        res.status(200).json({
+            Data: { Row: fastReports, Total: countFastReport },
+            Status: { StatusCode: 200, Message: 'OK' }
         });
-
-    await FastReport.find(paramsQuery)
-        .skip(skip).limit(limit).populate("userId", "-password -__v -date")
-        .sort({ date: -1 })
-        .then(FastReports => res.status(200).json(
-            {
-                Data: { Row: FastReports, Total: countFastReport },
-                Status: { StatusCode: 200, Message: 'OK' }
-            }
-        ));
+    } catch (err) {
+        // Handle the error
+        console.error(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
 });
 //@route Get api/FastReport/collect-tools
 //@desc Get all api/FastReport/collect-tools
