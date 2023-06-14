@@ -28,7 +28,15 @@ const BptcSchema = new Schema({
     date: {
         type: Date,
         default: Date.now
-    }
+    },
+    files: [{
+        idFile: {
+            type: String,
+        },
+        name: {
+            type: String,
+        }
+    }],
 })
 
 module.exports = Bptc = mongoose.model('bptc', BptcSchema)

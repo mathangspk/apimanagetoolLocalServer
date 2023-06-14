@@ -162,9 +162,9 @@ router.post('/', verify, async (req, res) => {
         //BPTC: "001/BPTC-CNCM.2",
         //JSA: "001/JSA-CNCM.2",
         BPTC: pctT + "/BPTC-CNCM." + groupNumber,
-	//BPTC: "",
+        //BPTC: "",
         JSA: jsaT + "/JSA-CNCM." + groupNumber,
-	//JSA: " ",
+        //JSA: " ",
         note: req.body.note,
         content: req.body.content,
         groupNumber: String(groupNumber)
@@ -244,6 +244,24 @@ router.patch('/:bptcId', verify, async (req, res) => {
             })
         };
         res.json(updateBptc);
+        //console.log(toolId);
+    } catch (err) {
+        res.json({ message: err });
+    }
+})
+
+router.patch('/addFiles/:bptcId', verify, async (req, res) => {
+    try {
+        console.log('fffff')
+        console.log(req.body)
+        const updatebptc = await bptc.updateOne(
+            { _id: req.body.id },
+            {
+                $set: {
+                    files: req.body.listFile
+                }
+            })
+        res.json(updatebptc);
         //console.log(toolId);
     } catch (err) {
         res.json({ message: err });
