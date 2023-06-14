@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const Tool = require('../models/Tool');
+const FastReport = require('./FastReport');
 //create Schema 
 const OrderSchema = new Schema({
     userId: {
@@ -59,6 +60,10 @@ const OrderSchema = new Schema({
     date: {
         type: Date,
         default: Date.now
+    },
+    fastReport: {
+        type: Boolean,
+        required: true
     }
 })
 
