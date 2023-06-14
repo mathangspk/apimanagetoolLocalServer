@@ -114,7 +114,6 @@ router.get('/search', verify, async (req, res) => {
         let skip = Number(req.query.skip);
         let paramsQuery = {
             WO: { '$regex': req.query.wo || '' },
-            PCT: { '$regex': req.query.pct || '' },
             status: { '$regex': req.query.status !== 'ALL' && req.query.status || '' },
             content: { '$regex': req.query.content || '' },
             KKS: { '$regex': req.query.kks || '' },
@@ -172,56 +171,41 @@ router.get('/collect-tools', verify, (req, res) => {
 //@desc Create an FastReports
 //@access Public
 router.post('/', verify, async (req, res) => {
-    const WOExist = await FastReport.findOne({ WO: req.body.WO });
-    //console.log(WOExist)
-    if (WOExist) return res.status(400).send('WO ' + WOExist.WO + ' đã tồn tại, vui lòng kiểm tra lại!')
-    let date = new Date();
-    let month = ("0" + (date.getMonth() + 1)).slice(-2)
-    let year = date.getYear() - 100;
-    let lastWo = await FastReport.findOne({}, {}, { sort: { 'date': -1 } }, function (err, FastReport) {
-        return FastReport;
-    });
-    let lastmonth = lastWo ? Number(lastWo.PCT.split("/")[1]) : month;
-    let pct;
-    if (Number(month) !== lastmonth) {
-        pct = 1;
-    } else {
-        pct = lastWo ? Number(lastWo.PCT.split("/")[0]) + 1 : '1';
-    }
-    //let pct = Number(lastWo.PCT.split("/")[0]) + 1;
-    //console.log("last:" + lastWo);
-    if (pct < 10) {
-        pctT = "00" + pct;
-    } else if (pct >= 10 && pct < 100) {
-        pctT = "0" + pct;
-    } else pctT = pct;
+    try {
+        console.log(req.body);
+        const WOExist = await FastReport.findOne({ WO: req.body.WO });
+        if (WOExist) {
+            return res.status(400).send('WO ' + WOExist.WO + ' đã tồn tại, vui lòng kiểm tra lại!');
+        }
 
-    //console.log("pct: " + pctT)
-    const newFastReport = new FastReport({
-        userId: req.body.userId,
-        toolId: req.body.toolId,
-        WO: req.body.WO,
-        location: req.body.location,
-        KKS: req.body.KKS,
-        PCT: pctT + "/" + month + "/" + year,
-        NV: req.body.NV,
-        note: req.body.note,
-        content: req.body.content,
-        error: req.body.error,
-        result: req.body.result,
-        employ: req.body.employ,
-        time: req.body.time,
-        timeStart: req.body.timeStart,
-        timeStop: req.body.timeStop,
-        status: req.body.status,
-        statusTool: req.body.statusTool,
-        images: req.body.images,
-    });
-    newFastReport.save()
-        .then(FastReport => res.json(FastReport))
-        .catch(err => res.json(err))
-        ;
-})
+        const newFastReport = new FastReport({
+            userId: req.body.userId,
+            toolId: req.body.toolId,
+            WO: req.body.WO,
+            location: req.body.location,
+            KKS: req.body.KKS,
+            //PCT: pctT + "/" + month + "/" + year,
+            NV: req.body.NV,
+            note: req.body.note,
+            content: req.body.content,
+            error: req.body.error,
+            result: req.body.result,
+            employ: req.body.employ,
+            time: req.body.time,
+            timeStart: req.body.timeStart,
+            timeStop: req.body.timeStop,
+            status: req.body.status,
+            statusTool: req.body.statusTool,
+            images: req.body.images,
+        });
+
+        const savedFastReport = await newFastReport.save();
+        res.json(savedFastReport);
+    } catch (err) {
+        res.json(err);
+    }
+});
+
 
 //@route DELETE api/FastReports:id
 //@desc delete an FastReports

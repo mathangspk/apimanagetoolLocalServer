@@ -40,10 +40,10 @@ const FastReportSchema = new Schema({
     note: {
         type: String,
     },
-    PCT: {
-        type: String,
-        required: true
-    },
+    // PCT: {
+    //     type: String,
+    //     required: true
+    // },
     NV: [{
         type: Schema.Types.ObjectId,
         ref: "User"

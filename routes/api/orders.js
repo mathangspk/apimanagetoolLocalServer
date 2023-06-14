@@ -213,6 +213,7 @@ router.post('/', verify, async (req, res) => {
         timeStop: req.body.timeStop,
         status: req.body.status,
         statusTool: req.body.statusTool,
+        fastReport: req.body.fastReport
     });
     newOrder.save()
         .then(order => res.json(order))
@@ -256,6 +257,7 @@ router.post('/', verify, async (req, res) => {
 //update order
 router.patch('/:orderId', verify, async (req, res) => {
     try {
+        console.log(req.body)
         var toolId = [];
         const updateOrder = await Order.updateOne(
             { _id: req.params.orderId },
@@ -275,6 +277,7 @@ router.patch('/:orderId', verify, async (req, res) => {
                     timeStop: req.body.timeStop,
                     status: req.body.status,
                     statusTool: req.body.statusTool,
+                    fastReport: req.body.fastReport
                 }
             })
 
