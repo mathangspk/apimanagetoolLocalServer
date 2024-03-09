@@ -81,7 +81,7 @@ router.get('/dashboard', verify, async (req, res) => {
             else if (start.userId.group === "Máy Tĩnh") {
                 countMT++;
             }
-            else if (start.userId.group === "Thiết bị phụ") {
+            else if (start.userId.group === "Thiết Bị Phụ") {
                 countTBP++;
             }
             else if (start.userId.group === "HRSG-BOP") {
