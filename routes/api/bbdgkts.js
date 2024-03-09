@@ -102,7 +102,7 @@ router.post('/', verify, async (req, res) => {
     let groupNumber;
     if (groupName === "Tự Động" || groupName === "Kiểm Nhiệt") {
         groupNumber = 2;
-    } else if (groupName === "Thiết Bị Phụ" || groupName === "HRSG-BOP" || groupName === "Turbine") {
+    } else if (groupName === "Thiết bị phụ" || groupName === "HRSG-BOP" || groupName === "Turbine") {
         groupNumber = 4;
     } else if (groupName === "Máy Tĩnh" || groupName === "Máy Động") {
         groupNumber = 3;
